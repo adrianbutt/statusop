@@ -1,0 +1,306 @@
+import { DelayedInitStatusOp } from "@/src/ops/DelayedInitStatusOp";
+
+describe("standard tests", () => {
+  test("basic testing - auto start", async () => {
+    const op = new MockSuccessOpAutoStart(123);
+    expect(op.progress).toEqual(0);
+    expect(op.started).toEqual(true);
+
+    const mockDirectProgressCallback = jest.fn((x: number) => x);
+    const mockDirectCompleteCallback = jest.fn((x: number) => x);
+    const mockDirectErrorCallback = jest.fn((e: unknown) => e);
+
+    const mockStatusProgressCallback = jest.fn((x: number) => x);
+    const mockStatusCompleteCallback = jest.fn((x: number) => x);
+    const mockStatusErrorCallback = jest.fn((e: unknown) => e);
+
+    const mockReadonlyProgressCallback = jest.fn((x: number) => x);
+    const mockReadonlyCompleteCallback = jest.fn((x: number) => x);
+    const mockReadonlyErrorCallback = jest.fn((e: unknown) => e);
+
+    op.on("complete", mockDirectCompleteCallback);
+    op.on("progress", mockDirectProgressCallback);
+    op.on("error", mockDirectErrorCallback);
+
+    const opStatus = op.getStatusObject();
+    opStatus.on("complete", mockStatusCompleteCallback);
+    opStatus.on("progress", mockStatusProgressCallback);
+    opStatus.on("error", mockStatusErrorCallback);
+
+    const opReadonly = op.getReadonlyObject();
+    opReadonly.on("complete", mockReadonlyCompleteCallback);
+    opReadonly.on("progress", mockReadonlyProgressCallback);
+    opReadonly.on("error", mockReadonlyErrorCallback);
+
+    expect(op).not.toEqual(opStatus);
+    expect(op).not.toEqual(opReadonly);
+    expect(opStatus).not.toEqual(opReadonly);
+
+    expect(op.progress).toEqual(0);
+    expect(opStatus.progress).toEqual(0);
+    expect(opReadonly.progress).toEqual(0);
+
+    expect(op.started).toEqual(true);
+
+    let opResult = await op;
+
+    expect(op.progress).toEqual(1);
+    expect(op.complete).toEqual(true);
+    expect(op.error).toEqual(undefined);
+    expect(op.response).toEqual(123);
+    expect(opResult).toEqual(123);
+
+    expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.5, op]);
+    expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
+
+    expect(mockDirectCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectCompleteCallback.mock.calls[0]).toEqual([123, op]);
+
+    expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusProgressCallback.mock.calls[0]).toEqual([0.5, opStatus]);
+    expect(mockStatusErrorCallback.mock.calls).toHaveLength(0);
+
+    expect(mockStatusCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusCompleteCallback.mock.calls[0]).toEqual([123, opStatus]);
+
+    expect(mockReadonlyProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyProgressCallback.mock.calls[0]).toEqual([
+      0.5,
+      opReadonly
+    ]);
+    expect(mockReadonlyErrorCallback.mock.calls).toHaveLength(0);
+
+    expect(mockReadonlyCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyCompleteCallback.mock.calls[0]).toEqual([
+      123,
+      opReadonly
+    ]);
+
+    let opReadonlyResult = await opReadonly;
+    expect(opReadonlyResult).toEqual(123);
+  });
+
+  test("basic testing - manual start", async () => {
+    const op = new MockSuccessOpManualStart(123);
+    expect(op.progress).toEqual(0);
+    expect(op.started).toEqual(false);
+
+    const mockDirectProgressCallback = jest.fn((x: number) => x);
+    const mockDirectCompleteCallback = jest.fn((x: number) => x);
+    const mockDirectErrorCallback = jest.fn((e: unknown) => e);
+
+    const mockStatusProgressCallback = jest.fn((x: number) => x);
+    const mockStatusCompleteCallback = jest.fn((x: number) => x);
+    const mockStatusErrorCallback = jest.fn((e: unknown) => e);
+
+    const mockReadonlyProgressCallback = jest.fn((x: number) => x);
+    const mockReadonlyCompleteCallback = jest.fn((x: number) => x);
+    const mockReadonlyErrorCallback = jest.fn((e: unknown) => e);
+
+    op.on("complete", mockDirectCompleteCallback);
+    op.on("progress", mockDirectProgressCallback);
+    op.on("error", mockDirectErrorCallback);
+
+    const opStatus = op.getStatusObject();
+    opStatus.on("complete", mockStatusCompleteCallback);
+    opStatus.on("progress", mockStatusProgressCallback);
+    opStatus.on("error", mockStatusErrorCallback);
+
+    const opReadonly = op.getReadonlyObject();
+    opReadonly.on("complete", mockReadonlyCompleteCallback);
+    opReadonly.on("progress", mockReadonlyProgressCallback);
+    opReadonly.on("error", mockReadonlyErrorCallback);
+
+    expect(op).not.toEqual(opStatus);
+    expect(op).not.toEqual(opReadonly);
+    expect(opStatus).not.toEqual(opReadonly);
+
+    expect(op.progress).toEqual(0);
+    expect(opStatus.progress).toEqual(0);
+    expect(opReadonly.progress).toEqual(0);
+
+    op.start();
+    expect(op.started).toEqual(true);
+
+    let opResult = await op;
+
+    expect(op.progress).toEqual(1);
+    expect(op.complete).toEqual(true);
+    expect(op.error).toEqual(undefined);
+    expect(op.response).toEqual(123);
+    expect(opResult).toEqual(123);
+
+    expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.5, op]);
+    expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
+
+    expect(mockDirectCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectCompleteCallback.mock.calls[0]).toEqual([123, op]);
+
+    expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusProgressCallback.mock.calls[0]).toEqual([0.5, opStatus]);
+    expect(mockStatusErrorCallback.mock.calls).toHaveLength(0);
+
+    expect(mockStatusCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusCompleteCallback.mock.calls[0]).toEqual([123, opStatus]);
+
+    expect(mockReadonlyProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyProgressCallback.mock.calls[0]).toEqual([
+      0.5,
+      opReadonly
+    ]);
+    expect(mockReadonlyErrorCallback.mock.calls).toHaveLength(0);
+
+    expect(mockReadonlyCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyCompleteCallback.mock.calls[0]).toEqual([
+      123,
+      opReadonly
+    ]);
+  });
+
+  test("error testing", async () => {
+    const op = new MockErrorOp("mock error");
+    expect(op.progress).toEqual(0);
+
+    const mockDirectProgressCallback = jest.fn((x: number) => x);
+    const mockDirectCompleteCallback = jest.fn((x: number) => x);
+    const mockDirectErrorCallback = jest.fn((e: unknown) => e);
+
+    const mockStatusProgressCallback = jest.fn((x: number) => x);
+    const mockStatusCompleteCallback = jest.fn((x: number) => x);
+    const mockStatusErrorCallback = jest.fn((e: unknown) => e);
+
+    const mockReadonlyProgressCallback = jest.fn((x: number) => x);
+    const mockReadonlyCompleteCallback = jest.fn((x: number) => x);
+    const mockReadonlyErrorCallback = jest.fn((e: unknown) => e);
+
+    op.on("complete", mockDirectCompleteCallback);
+    op.on("progress", mockDirectProgressCallback);
+    op.on("error", mockDirectErrorCallback);
+
+    const opStatus = op.getStatusObject();
+    opStatus.on("complete", mockStatusCompleteCallback);
+    opStatus.on("progress", mockStatusProgressCallback);
+    opStatus.on("error", mockStatusErrorCallback);
+
+    const opReadonly = op.getReadonlyObject();
+    opReadonly.on("complete", mockReadonlyCompleteCallback);
+    opReadonly.on("progress", mockReadonlyProgressCallback);
+    opReadonly.on("error", mockReadonlyErrorCallback);
+
+    expect(op).not.toEqual(opStatus);
+    expect(op).not.toEqual(opReadonly);
+    expect(opStatus).not.toEqual(opReadonly);
+
+    expect(op.progress).toEqual(0);
+    expect(opStatus.progress).toEqual(0);
+    expect(opReadonly.progress).toEqual(0);
+
+    try {
+      await op;
+    } catch (err) {
+      expect(err).toEqual("mock error");
+    }
+
+    expect(op.progress).toEqual(1);
+    expect(op.complete).toEqual(true);
+    expect(op.error).toEqual("mock error");
+    expect(op.response).toEqual(null);
+
+    expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.5, op]);
+    expect(mockDirectErrorCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectErrorCallback.mock.calls[0]).toEqual(["mock error", op]);
+
+    expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
+
+    expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusProgressCallback.mock.calls[0]).toEqual([0.5, opStatus]);
+    expect(mockStatusErrorCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusErrorCallback.mock.calls[0]).toEqual([
+      "mock error",
+      opStatus
+    ]);
+
+    expect(mockStatusCompleteCallback.mock.calls).toHaveLength(0);
+
+    expect(mockReadonlyProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyProgressCallback.mock.calls[0]).toEqual([
+      0.5,
+      opReadonly
+    ]);
+    expect(mockReadonlyErrorCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyErrorCallback.mock.calls[0]).toEqual([
+      "mock error",
+      opReadonly
+    ]);
+
+    expect(mockReadonlyCompleteCallback.mock.calls).toHaveLength(0);
+  });
+});
+
+export class MockSuccessOpManualStart extends DelayedInitStatusOp<number> {
+  private _mockResponse: number;
+  constructor(mockResponse: number) {
+    super();
+    this._mockResponse = mockResponse;
+  }
+
+  start() {
+    this._setLogic(this._runLogic());
+  }
+
+  private async _runLogic() {
+    // imagine this some sort of async processing task..
+    await Promise.resolve(null);
+
+    this._updateProgress(0.5);
+
+    // imagine this some sort of async processing task..
+    await Promise.resolve(null);
+
+    return this._mockResponse;
+  }
+}
+export class MockSuccessOpAutoStart extends DelayedInitStatusOp<number> {
+  private _mockResponse: number;
+  constructor(mockResponse: number) {
+    super();
+    this._mockResponse = mockResponse;
+    this._setLogic(this._runLogic());
+  }
+
+  private async _runLogic() {
+    // imagine this some sort of async processing task..
+    await Promise.resolve(null);
+
+    this._updateProgress(0.5);
+
+    // imagine this some sort of async processing task..
+    await Promise.resolve(null);
+
+    return this._mockResponse;
+  }
+}
+export class MockErrorOp extends DelayedInitStatusOp<number> {
+  private _mockError: string;
+  constructor(mockError: string) {
+    super();
+    this._mockError = mockError;
+    this._setLogic(this._runLogic());
+  }
+
+  private async _runLogic() {
+    // imagine this some sort of async processing task..
+    await Promise.resolve(null);
+
+    this._updateProgress(0.5);
+
+    // imagine this some sort of async processing task..
+    await Promise.resolve(null);
+
+    throw this._mockError;
+    return 1;
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "statusop",
+  "version": "1.0.0",
+  "description": "Utility wrapper for promises with progress and events.",
+  "main": "dist/cjs/src/index.js",
+  "module": "dist/mjs/src/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/mjs/src/index.js",
+      "require": "./dist/cjs/src/index.js"
+    },
+    "./*": {
+      "import": "./dist/mjs/src/*.js",
+      "require": "./dist/cjs/src/*.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "compile": "tsc -p tsconfig-compile.json --noEmit && tsc -p tsconfig-compile-examples.json --noEmit",
+    "pretty": "prettier --write '{src,tests}/**/*.{js,ts,mjs,cjs,json}'",
+    "pretty-dry-run": "prettier --check '{src,tests}/**/*.{js,ts,mjs,cjs,json}'",
+    "test": "cross-env STRICT_TEST_TYPECHECKING=1 jest",
+    "test-coverage": "cross-env STRICT_TEST_TYPECHECKING=1 jest --coverage"
+  },
+  "author": "Adrian Butt",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.5.5",
+    "chalk": "^5.3.0",
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.3.3",
+    "ts-jest": "^29.2.5",
+    "tsc-alias": "^1.8.10",
+    "typescript": "^5.6.2",
+    "yargs": "^17.7.2"
+  },
+  "dependencies": {}
+}

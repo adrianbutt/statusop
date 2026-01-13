@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig-base.json",
+  "include": ["examples"],
+  "compilerOptions": {
+    "paths": {
+      "@/tests/*": ["./tests/*"],
+      "@/*": ["./*"],
+      "statusop": ["./src/index"],
+      "statusop/*": ["./src/*"],
+    },
+    "target": "es2015"
+  }
+}
