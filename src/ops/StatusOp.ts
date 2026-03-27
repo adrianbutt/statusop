@@ -146,23 +146,6 @@ export abstract class StatusOp<
         return;
       }
 
-      const manualCallback = thisRef._generateOnHandler.apply(
-        thisRef,
-        arguments as unknown as [eventName: keyof TEventMap, callback: Function]
-      );
-      if (manualCallback) {
-        _manualCallbacks.push({
-          eventName,
-          mappedHandler: manualCallback as Function,
-          callback
-        });
-        thisRef.addEventListener(
-          eventName,
-          manualCallback as (ev: TEventMap[keyof TEventMap]) => void
-        );
-        return;
-      }
-
       const handlerContext = this;
       switch (eventName) {
         case "progress": {
@@ -348,13 +331,6 @@ export abstract class StatusOp<
   finally: Promise<T>["finally"];
 
   protected _updateProgress: (to: number, silent?: boolean) => void;
-
-  protected _generateOnHandler(
-    eventName: keyof TEventMap,
-    callback: Function
-  ): Function | undefined {
-    return undefined;
-  }
 
   // @ts-expect-error manual override of addEventListener for explicit event types
   addEventListener<T extends keyof TEventMap>(

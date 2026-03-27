@@ -428,11 +428,4 @@ export class MockOp<
   testUpdateProgress(to: number, silent?: boolean) {
     this._updateProgress(to, silent);
   }
-
-  _generateOnHandler(
-    eventName: keyof TEventMap,
-    callback: Function
-  ): Function | undefined {
-    return super._generateOnHandler(eventName, callback);
-  }
 }
