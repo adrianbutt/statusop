@@ -311,10 +311,6 @@ export abstract class StatusOp<
         return;
       }
 
-      if (rsp) {
-        _response = rsp;
-      }
-
       _error = error;
 
       thisRef.dispatchEvent(
