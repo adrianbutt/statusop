@@ -58,6 +58,102 @@ describe("standard tests", () => {
     );
   });
 
+  test("basic testing with standard events (with id)", async () => {
+    const progressEventCallback = jest.fn();
+    const progressCompleteCallback = jest.fn();
+
+    const op = new ExternallyManagedStatusOp<number>("myop123");
+
+    expect(op.id).toEqual("myop123");
+
+    op.addEventListener("progress", progressEventCallback);
+    op.addEventListener("complete", progressCompleteCallback);
+
+    expect(op.progress).toEqual(0);
+
+    op.notifyProgress(0.2);
+
+    expect(op.progress).toEqual(0.2);
+
+    expect(progressEventCallback.mock.calls).toHaveLength(1);
+    expect(progressEventCallback.mock.calls[0][0].detail).toEqual(
+      expect.objectContaining({
+        op: op.getStatusObject(),
+        progress: 0.2
+      })
+    );
+    expect(progressCompleteCallback.mock.calls).toHaveLength(0);
+
+    op.notifyResponseReceived(654);
+
+    let opResult = await op;
+
+    expect(op.progress).toEqual(1);
+    expect(op.response).toEqual(654);
+    expect(opResult).toEqual(654);
+
+    expect(progressCompleteCallback.mock.calls).toHaveLength(1);
+    expect(progressCompleteCallback.mock.calls[0][0].detail).toEqual(
+      expect.objectContaining({
+        op: op.getStatusObject(),
+        response: 654
+      })
+    );
+  });
+
+  test("basic testing with standard events (with id and callback)", async () => {
+    const progressEventCallback = jest.fn();
+    const progressCompleteCallback = jest.fn();
+
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
+
+    const op = new ExternallyManagedStatusOp<number>(
+      "myop",
+      mockConstructorCompleteCallback
+    );
+
+    expect(op.id).toEqual("myop");
+
+    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(0);
+
+    op.addEventListener("progress", progressEventCallback);
+    op.addEventListener("complete", progressCompleteCallback);
+
+    expect(op.progress).toEqual(0);
+
+    op.notifyProgress(0.2);
+
+    expect(op.progress).toEqual(0.2);
+
+    expect(progressEventCallback.mock.calls).toHaveLength(1);
+    expect(progressEventCallback.mock.calls[0][0].detail).toEqual(
+      expect.objectContaining({
+        op: op.getStatusObject(),
+        progress: 0.2
+      })
+    );
+    expect(progressCompleteCallback.mock.calls).toHaveLength(0);
+
+    op.notifyResponseReceived(654);
+
+    let opResult = await op;
+
+    expect(op.progress).toEqual(1);
+    expect(op.response).toEqual(654);
+    expect(opResult).toEqual(654);
+
+    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([654, null]);
+
+    expect(progressCompleteCallback.mock.calls).toHaveLength(1);
+    expect(progressCompleteCallback.mock.calls[0][0].detail).toEqual(
+      expect.objectContaining({
+        op: op.getStatusObject(),
+        response: 654
+      })
+    );
+  });
+
   test("basic testing with direct events", async () => {
     const progressEventCallback = jest.fn();
     const progressCompleteCallback = jest.fn();
@@ -265,7 +361,7 @@ describe("standard tests", () => {
       return -x;
     });
 
-    const mockConstructorCompleteCallback = jest.fn((x: number) => x);
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
     const mockDirectProgressCallback = jest.fn((x: number) => x);
     const mockDirectCompleteCallback = jest.fn((x: number) => x);
     const mockDirectErrorCallback = jest.fn((e: unknown) => e);
@@ -350,7 +446,7 @@ describe("standard tests", () => {
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
 
     expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
-    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, op]);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, null]);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockDirectCompleteCallback.mock.calls[0]).toEqual([-123, op]);
 

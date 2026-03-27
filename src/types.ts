@@ -27,7 +27,10 @@ export interface IStatusOpOptions<T> {
   processCallback?: ProcessResponseCallback<T>;
 }
 
-export type OnCompleteCallback<T> = (response: T, error: StatusOpError) => void;
+export type OnCompleteCallback<T> = (
+  response: T | null,
+  error: StatusOpError
+) => void;
 export type ProcessResponseCallback<T> = (
   response: T,
   error: StatusOpError

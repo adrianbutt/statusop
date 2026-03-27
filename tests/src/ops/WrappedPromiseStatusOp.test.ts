@@ -243,7 +243,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
   test("full constructor", async () => {
     const pObj = genPromiseObj<number>();
 
-    const mockCompleteCallback = jest.fn((x: number) => x);
+    const mockCompleteCallback = jest.fn((x: number | null) => x);
 
     const op = new WrappedPromiseStatusOp(
       "myop123",
@@ -267,13 +267,13 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
 
     expect(mockCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockCompleteCallback.mock.calls[0][0]).toEqual(123);
-    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, op]);
+    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, null]);
   });
 
   test("promise + oncomplete constructor", async () => {
     const pObj = genPromiseObj<number>();
 
-    const mockCompleteCallback = jest.fn((x: number) => x);
+    const mockCompleteCallback = jest.fn((x: number | null) => x);
 
     const op = new WrappedPromiseStatusOp(pObj.promise, mockCompleteCallback);
     expect(op.progress).toEqual(0);
@@ -292,13 +292,13 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
 
     expect(mockCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockCompleteCallback.mock.calls[0][0]).toEqual(123);
-    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, op]);
+    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, null]);
   });
 
   test("options constructor", async () => {
     const pObj = genPromiseObj<number>();
 
-    const mockCompleteCallback = jest.fn((x: number) => x);
+    const mockCompleteCallback = jest.fn((x: number | null) => x);
 
     const op = new WrappedPromiseStatusOp({
       id: "myop123",
@@ -322,13 +322,13 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
 
     expect(mockCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockCompleteCallback.mock.calls[0][0]).toEqual(123);
-    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, op]);
+    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, null]);
   });
 
   test("full options constructor", async () => {
     const pObj = genPromiseObj<number>();
 
-    const mockCompleteCallback = jest.fn((x: number) => x);
+    const mockCompleteCallback = jest.fn((x: number | null) => x);
     const mockProcessCallback = jest.fn((x: number) => -x);
 
     const op = new WrappedPromiseStatusOp({
@@ -359,13 +359,13 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
 
     expect(mockCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockCompleteCallback.mock.calls[0][0]).toEqual(-123);
-    expect(mockCompleteCallback.mock.calls[0]).toEqual([-123, op]);
+    expect(mockCompleteCallback.mock.calls[0]).toEqual([-123, null]);
   });
 
   test("promise + oncomplete options constructor", async () => {
     const pObj = genPromiseObj<number>();
 
-    const mockCompleteCallback = jest.fn((x: number) => x);
+    const mockCompleteCallback = jest.fn((x: number | null) => x);
 
     const op = new WrappedPromiseStatusOp({
       promise: pObj.promise,
@@ -387,7 +387,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
 
     expect(mockCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockCompleteCallback.mock.calls[0][0]).toEqual(123);
-    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, op]);
+    expect(mockCompleteCallback.mock.calls[0]).toEqual([123, null]);
   });
 
   test("invalid constructor (empty)", async () => {
@@ -439,7 +439,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
       return -x;
     });
 
-    const mockConstructorCompleteCallback = jest.fn((x: number) => x);
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
     const mockDirectProgressCallback = jest.fn((x: number) => x);
     const mockDirectCompleteCallback = jest.fn((x: number) => x);
     const mockDirectErrorCallback = jest.fn((e: unknown) => e);
@@ -500,7 +500,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
 
     expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
-    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, op]);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, null]);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockDirectCompleteCallback.mock.calls[0]).toEqual([-123, op]);
 
@@ -519,13 +519,13 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
       throw "example process error";
     });
 
-    const mockConstructorCompleteCallback = jest.fn((x: number) => x);
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
     const mockDirectProgressCallback = jest.fn((x: number) => x);
     const mockDirectCompleteCallback = jest.fn((x: number) => x);
     const mockDirectErrorCallback = jest.fn((e: unknown) => e);
 
     const mockStatusProgressCallback = jest.fn((x: number) => x);
-    const mockStatusCompleteCallback = jest.fn((x: number) => x);
+    const mockStatusCompleteCallback = jest.fn((x: number | null) => x);
     const mockStatusErrorCallback = jest.fn((e: unknown) => e);
 
     const op = new WrappedPromiseStatusOp({
@@ -586,7 +586,11 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
       op
     ]);
 
-    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([
+      null,
+      "example process error"
+    ]);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
 
     expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
@@ -610,13 +614,13 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
       return -x;
     });
 
-    const mockConstructorCompleteCallback = jest.fn((x: number) => x);
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
     const mockDirectProgressCallback = jest.fn((x: number) => x);
     const mockDirectCompleteCallback = jest.fn((x: number) => x);
     const mockDirectErrorCallback = jest.fn((e: unknown) => e);
 
     const mockStatusProgressCallback = jest.fn((x: number) => x);
-    const mockStatusCompleteCallback = jest.fn((x: number) => x);
+    const mockStatusCompleteCallback = jest.fn((x: number | null) => x);
     const mockStatusErrorCallback = jest.fn((e: unknown) => e);
 
     const op = new WrappedPromiseStatusOp({
@@ -709,7 +713,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
 
     expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
-    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, op]);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, null]);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
 
     expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
@@ -726,13 +730,13 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
       throw "example process error";
     });
 
-    const mockConstructorCompleteCallback = jest.fn((x: number) => x);
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
     const mockDirectProgressCallback = jest.fn((x: number) => x);
     const mockDirectCompleteCallback = jest.fn((x: number) => x);
     const mockDirectErrorCallback = jest.fn((e: unknown) => e);
 
     const mockStatusProgressCallback = jest.fn((x: number) => x);
-    const mockStatusCompleteCallback = jest.fn((x: number) => x);
+    const mockStatusCompleteCallback = jest.fn((x: number | null) => x);
     const mockStatusErrorCallback = jest.fn((e: unknown) => e);
 
     const op = new WrappedPromiseStatusOp({
@@ -824,7 +828,11 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
     expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.2, op]);
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
 
-    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([
+      null,
+      "example process error"
+    ]);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
 
     expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
@@ -841,7 +849,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
       return -x;
     });
 
-    const mockConstructorCompleteCallback = jest.fn((x: number) => x);
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
     const mockDirectProgressCallback = jest.fn((x: number) => x);
     const mockDirectCompleteCallback = jest.fn((x: number) => x);
     const mockDirectErrorCallback = jest.fn((e: unknown) => e);
@@ -851,7 +859,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
     const mockStatusErrorCallback = jest.fn((e: unknown) => e);
 
     const mockReadonlyProgressCallback = jest.fn((x: number) => x);
-    const mockReadonlyCompleteCallback = jest.fn((x: number) => x);
+    const mockReadonlyCompleteCallback = jest.fn((x: number | null) => x);
     const mockReadonlyErrorCallback = jest.fn((e: unknown) => e);
 
     const op = new WrappedPromiseStatusOp({
@@ -918,7 +926,7 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
 
     expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
-    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, op]);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, null]);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockDirectCompleteCallback.mock.calls[0]).toEqual([-123, op]);
 
@@ -982,7 +990,7 @@ describe("usage tests", () => {
       return -x;
     });
 
-    const mockConstructorCompleteCallback = jest.fn((x: number) => x);
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
     const mockDirectProgressCallback = jest.fn((x: number) => x);
     const mockDirectCompleteCallback = jest.fn((x: number) => x);
     const mockDirectErrorCallback = jest.fn((e: unknown) => e);
@@ -992,7 +1000,7 @@ describe("usage tests", () => {
     const mockStatusErrorCallback = jest.fn((e: unknown) => e);
 
     const mockReadonlyProgressCallback = jest.fn((x: number) => x);
-    const mockReadonlyCompleteCallback = jest.fn((x: number) => x);
+    const mockReadonlyCompleteCallback = jest.fn((x: number | null) => x);
     const mockReadonlyErrorCallback = jest.fn((e: unknown) => e);
 
     const op = new WrappedPromiseStatusOp({
@@ -1069,7 +1077,7 @@ describe("usage tests", () => {
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
 
     expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
-    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, op]);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([-123, null]);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(1);
     expect(mockDirectCompleteCallback.mock.calls[0]).toEqual([-123, op]);
 

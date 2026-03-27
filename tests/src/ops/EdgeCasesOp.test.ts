@@ -149,7 +149,7 @@ describe("explicit base StatusOp edge case tests", () => {
   test("basic testing big signature", async () => {
     const pObj = genPromiseObj<number>();
 
-    const mockOnCompleteCallback = jest.fn((x: number) => x);
+    const mockOnCompleteCallback = jest.fn((x: number | null) => x);
 
     const op = new MockOp("abc", pObj.promise, mockOnCompleteCallback);
     expect(op.id).toEqual("abc");
@@ -206,7 +206,7 @@ describe("explicit base StatusOp edge case tests", () => {
     expect(opResult).toEqual(123);
 
     expect(mockOnCompleteCallback.mock.calls).toHaveLength(1);
-    expect(mockOnCompleteCallback.mock.calls[0]).toEqual([123, op]);
+    expect(mockOnCompleteCallback.mock.calls[0]).toEqual([123, null]);
 
     expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
     expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.5, op]);
@@ -242,7 +242,7 @@ describe("explicit base StatusOp edge case tests", () => {
   test("basic testing onComplete signature", async () => {
     const pObj = genPromiseObj<number>();
 
-    const mockOnCompleteCallback = jest.fn((x: number) => x);
+    const mockOnCompleteCallback = jest.fn((x: number | null) => x);
 
     const op = new MockOp(pObj.promise, mockOnCompleteCallback);
     expect(op.progress).toEqual(0);
@@ -298,7 +298,7 @@ describe("explicit base StatusOp edge case tests", () => {
     expect(opResult).toEqual(123);
 
     expect(mockOnCompleteCallback.mock.calls).toHaveLength(1);
-    expect(mockOnCompleteCallback.mock.calls[0]).toEqual([123, op]);
+    expect(mockOnCompleteCallback.mock.calls[0]).toEqual([123, null]);
 
     expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
     expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.5, op]);

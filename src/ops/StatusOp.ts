@@ -329,7 +329,9 @@ export abstract class StatusOp<
     }
 
     if (options.onComplete) {
-      this.on("complete", options.onComplete);
+      const onCompleteCB = options.onComplete;
+      this.on("complete", v => onCompleteCB(v, null));
+      this.on("error", err => onCompleteCB(null, err));
     }
 
     _basePromise.catch(e => {
