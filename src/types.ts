@@ -78,14 +78,9 @@ export interface IStatusOp<
   readonly response: T | null;
   readonly error: StatusOpError | null;
 
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
-    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
-  ): Promise<TResult1 | TResult2>;
-  catch<TResult = never>(
-    onrejected?: (reason: any) => TResult | PromiseLike<TResult>
-  ): Promise<T | TResult>;
-  finally(onfinally?: () => void): Promise<T>;
+  then: Promise<T>["then"];
+  catch: Promise<T>["catch"];
+  finally: Promise<T>["finally"];
 
   getStatusObject: () => IStatusOpStatus<T, TEventMap>;
   getReadonlyObject: () => IReadonlyStatusOp<T, TEventMap>;
@@ -116,12 +111,7 @@ export interface IReadonlyStatusOp<
   readonly response: T | null;
   readonly error: StatusOpError | null;
 
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
-    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
-  ): Promise<TResult1 | TResult2>;
-  catch<TResult = never>(
-    onrejected?: (reason: any) => TResult | PromiseLike<TResult>
-  ): Promise<T | TResult>;
-  finally(onfinally?: () => void): Promise<T>;
+  then: Promise<T>["then"];
+  catch: Promise<T>["catch"];
+  finally: Promise<T>["finally"];
 }

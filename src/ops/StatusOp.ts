@@ -347,20 +347,9 @@ export abstract class StatusOp<
   getStatusObject: () => IStatusOpStatus<T, TEventMap>;
   getReadonlyObject: () => IReadonlyStatusOp<T, TEventMap>;
 
-  then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
-    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
-  ): Promise<TResult1 | TResult2> {
-    // function will be replaced in constructor
-    throw 1;
-  }
-  catch<TResult = never>(
-    onrejected?: (reason: any) => TResult | PromiseLike<TResult>
-  ): Promise<T | TResult> {
-    // function will be replaced in constructor
-    throw 1;
-  }
-  finally: (onfinally?: (() => void) | null | undefined) => Promise<T>;
+  then: Promise<T>["then"];
+  catch: Promise<T>["catch"];
+  finally: Promise<T>["finally"];
 
   protected _updateProgress: (to: number, silent?: boolean) => void;
 
