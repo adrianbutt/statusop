@@ -659,6 +659,101 @@ describe("explicit WrappedPromiseStatusOp tests", () => {
     expect(mockStatusCompleteCallback.mock.calls).toHaveLength(0);
   });
 
+  test("events processing failure - empty error", async () => {
+    const pObj = genPromiseObj<number>();
+
+    const mockProcessCallback = jest.fn(function (x: number) {
+      throw null;
+    });
+
+    const mockConstructorCompleteCallback = jest.fn((x: number | null) => x);
+    const mockDirectProgressCallback = jest.fn((x: number) => x);
+    const mockDirectCompleteCallback = jest.fn((x: number) => x);
+    const mockDirectErrorCallback = jest.fn((e: unknown) => e);
+
+    const mockStatusProgressCallback = jest.fn((x: number) => x);
+    const mockStatusCompleteCallback = jest.fn((x: number | null) => x);
+    const mockStatusErrorCallback = jest.fn((e: unknown) => e);
+
+    const op = new WrappedPromiseStatusOp({
+      id: "myop123",
+      promise: pObj.promise,
+      processCallback: mockProcessCallback,
+      onComplete: mockConstructorCompleteCallback
+    });
+    op.on("complete", mockDirectCompleteCallback);
+    op.on("progress", mockDirectProgressCallback);
+    op.on("error", mockDirectErrorCallback);
+
+    const opStatus = op.getStatusObject();
+    opStatus.on("complete", mockStatusCompleteCallback);
+    opStatus.on("progress", mockStatusProgressCallback);
+    opStatus.on("error", mockStatusErrorCallback);
+
+    expect(op.id).toEqual("myop123");
+    expect(op.progress).toEqual(0);
+
+    op.notifyProgress(0.2);
+    expect(op.progress).toEqual(0.2);
+
+    expect(mockProcessCallback.mock.calls).toHaveLength(0);
+
+    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.2, op]);
+    expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusProgressCallback.mock.calls[0]).toEqual([0.2, opStatus]);
+    expect(mockStatusCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusErrorCallback.mock.calls).toHaveLength(0);
+
+    try {
+      pObj.resolve(123);
+      await op;
+    } catch {}
+
+    expect(op.progress).toEqual(1);
+    expect(op.complete).toEqual(true);
+    expect(op.error).toEqual("Unknown error occurred");
+    expect(op.response).toEqual(null);
+
+    expect(mockProcessCallback.mock.calls).toHaveLength(1);
+    expect(mockProcessCallback.mock.calls[0][0]).toEqual(123);
+    expect(mockProcessCallback.mock.calls[0]).toEqual([123, null]);
+
+    expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.2, op]);
+    expect(mockDirectErrorCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectErrorCallback.mock.calls[0][0]).toEqual(
+      "Unknown error occurred"
+    );
+    expect(mockDirectErrorCallback.mock.calls[0]).toEqual([
+      "Unknown error occurred",
+      op
+    ]);
+
+    expect(mockConstructorCompleteCallback.mock.calls).toHaveLength(1);
+    expect(mockConstructorCompleteCallback.mock.calls[0]).toEqual([
+      null,
+      "Unknown error occurred"
+    ]);
+    expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
+
+    expect(mockStatusProgressCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusProgressCallback.mock.calls[0]).toEqual([0.2, opStatus]);
+    expect(mockStatusErrorCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusErrorCallback.mock.calls[0][0]).toEqual(
+      "Unknown error occurred"
+    );
+    expect(mockStatusErrorCallback.mock.calls[0]).toEqual([
+      "Unknown error occurred",
+      opStatus
+    ]);
+
+    expect(mockStatusCompleteCallback.mock.calls).toHaveLength(0);
+  });
+
   test("events processing - unsubscribe", async () => {
     const pObj = genPromiseObj<number>();
 
