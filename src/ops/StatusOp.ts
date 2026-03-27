@@ -34,11 +34,11 @@ export abstract class StatusOp<
   readonly response!: T | null;
   readonly error!: StatusOpError | null;
 
-  constructor(promise: Promise<T>);
-  constructor(promise: Promise<T>, onComplete: OnCompleteCallback<T>);
+  constructor(promise: PromiseLike<T>);
+  constructor(promise: PromiseLike<T>, onComplete: OnCompleteCallback<T>);
   constructor(
     reqID: StatusOpID,
-    promise: Promise<T>,
+    promise: PromiseLike<T>,
     onComplete: OnCompleteCallback<T>
   );
   constructor(options: IStatusOpOptions<T>);

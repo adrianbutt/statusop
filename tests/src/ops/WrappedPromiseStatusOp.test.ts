@@ -210,6 +210,58 @@ describe("wrap promise tests", () => {
     expect(progressCompleteCallback.mock.calls[0]).toEqual([654, op]);
   });
 
+  test("basic testing with standard events - using a PromiseLike object", async () => {
+    const pObj = genPromiseObj<number>();
+
+    const progressEventCallback = jest.fn();
+    const progressCompleteCallback = jest.fn();
+
+    let promiseLike = {
+      then: function () {
+        return pObj.promise.then.apply(pObj.promise, [
+          ...(arguments as unknown as Parameters<PromiseLike<number>["then"]>)
+        ]);
+      }
+    } as unknown as PromiseLike<number>;
+
+    const op = wrapPromise(promiseLike);
+
+    op.addEventListener("progress", progressEventCallback);
+    op.addEventListener("complete", progressCompleteCallback);
+
+    expect(op.progress).toEqual(0);
+
+    op.notifyProgress(0.2);
+
+    expect(op.progress).toEqual(0.2);
+
+    expect(progressEventCallback.mock.calls).toHaveLength(1);
+    expect(progressEventCallback.mock.calls[0][0].detail).toEqual(
+      expect.objectContaining({
+        op: op.getStatusObject(),
+        progress: 0.2
+      })
+    );
+    expect(progressCompleteCallback.mock.calls).toHaveLength(0);
+
+    pObj.resolve(654);
+
+    let opResult = await op;
+
+    expect(op.progress).toEqual(1);
+    expect(op.complete).toEqual(true);
+    expect(op.response).toEqual(654);
+    expect(opResult).toEqual(654);
+
+    expect(progressCompleteCallback.mock.calls).toHaveLength(1);
+    expect(progressCompleteCallback.mock.calls[0][0].detail).toEqual(
+      expect.objectContaining({
+        op: op.getStatusObject(),
+        response: 654
+      })
+    );
+  });
+
   test("invalid wrapPromise testing (empty)", async () => {
     // @ts-expect-error invalid call but we will ensure it fails correctly
     const op = wrapPromise();
