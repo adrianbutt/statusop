@@ -439,6 +439,12 @@ describe("standard tests", () => {
       expect(err).toEqual("mock error");
     }
 
+    try {
+      await opReadonly;
+    } catch (err) {
+      expect(err).toEqual("mock error");
+    }
+
     expect(op.progress).toEqual(1);
     expect(op.complete).toEqual(true);
     expect(op.error).toEqual("mock error");
@@ -633,6 +639,62 @@ describe("standard tests", () => {
     expect(mockReadonlyCompleteCallback.mock.calls).toHaveLength(0);
 
     expect(op.constructorState).toEqual("called-before-inited");
+  });
+
+  test("promise signatures", async () => {
+    const op = new MockSuccessOp(123);
+    expect(op.progress).toEqual(0);
+    const opReadonly = op.getReadonlyObject();
+
+    expect(op).not.toEqual(opReadonly);
+    expect(op.progress).toEqual(0);
+    expect(opReadonly.progress).toEqual(0);
+
+    let opResult = await op;
+
+    expect(op.progress).toEqual(1);
+    expect(op.complete).toEqual(true);
+    expect(op.error).toEqual(undefined);
+    expect(op.response).toEqual(123);
+    expect(opResult).toEqual(123);
+
+    let thenPromise: Promise<string>;
+    let thenPromiseResult: string;
+
+    thenPromise = op.then(r => `${r}-op`);
+    thenPromiseResult = await thenPromise;
+    expect(thenPromiseResult).toEqual("123-op");
+
+    thenPromise = opReadonly.then(r => `${r}-opReadonly`);
+    thenPromiseResult = await thenPromise;
+    expect(thenPromiseResult).toEqual("123-opReadonly");
+
+    const errorOp = new MockErrorOp("mock error");
+    const errorOpReadonly = errorOp.getReadonlyObject();
+
+    expect(errorOp).not.toEqual(errorOpReadonly);
+    try {
+      await errorOp;
+    } catch (err) {
+      expect(err).toEqual("mock error");
+    }
+    try {
+      await errorOpReadonly;
+    } catch (err) {
+      expect(err).toEqual("mock error");
+    }
+
+    thenPromise = errorOp
+      .then(v => `${v}-errorOp`)
+      .catch(err => `${err}-errorOp`);
+    thenPromiseResult = await thenPromise;
+    expect(thenPromiseResult).toEqual("mock error-errorOp");
+
+    thenPromise = errorOpReadonly
+      .then(v => `${v}-errorOpReadonly`)
+      .catch(err => `${err}-errorOpReadonly`);
+    thenPromiseResult = await thenPromise;
+    expect(thenPromiseResult).toEqual("mock error-errorOpReadonly");
   });
 });
 

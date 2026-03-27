@@ -1,6 +1,5 @@
 import type {
   IStatusOpOptions,
-  IPromiseLike,
   OnCompleteCallback,
   StatusOpID
 } from "@/src/types";
@@ -9,14 +8,14 @@ import { isPromiseLike } from "@/src/utils";
 
 export interface IWrappedPromiseStatusOpOptions<T>
   extends Omit<IStatusOpOptions<T>, "promise"> {
-  promise: IPromiseLike<T>;
+  promise: PromiseLike<T>;
 }
 export class WrappedPromiseStatusOp<T> extends StatusOp<T> {
-  constructor(promise: IPromiseLike<T>);
-  constructor(promise: IPromiseLike<T>, onComplete: OnCompleteCallback<T>);
+  constructor(promise: PromiseLike<T>);
+  constructor(promise: PromiseLike<T>, onComplete: OnCompleteCallback<T>);
   constructor(
     reqID: StatusOpID,
-    promise: IPromiseLike<T>,
+    promise: PromiseLike<T>,
     onComplete: OnCompleteCallback<T>
   );
   constructor(options: IWrappedPromiseStatusOpOptions<T>);
@@ -74,7 +73,7 @@ export class WrappedPromiseStatusOp<T> extends StatusOp<T> {
 }
 
 export function wrapPromise<T>(
-  promise: IPromiseLike<T>
+  promise: PromiseLike<T>
 ): WrappedPromiseStatusOp<T> {
   const ret = new WrappedPromiseStatusOp<T>(promise);
   return ret;

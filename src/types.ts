@@ -21,7 +21,7 @@ export interface IPromiseObj<T> {
 }
 
 export interface IStatusOpOptions<T> {
-  promise: IPromiseLike<T>;
+  promise: PromiseLike<T>;
   id?: StatusOpID;
   onComplete?: OnCompleteCallback<T>;
   processCallback?: ProcessResponseCallback<T>;
@@ -36,11 +36,6 @@ export type ProcessResponseCallback<T> = (
 export type StatusOpID = string;
 export type StatusOpResponse = unknown;
 export type StatusOpError = unknown;
-
-export interface IPromiseLike<T> {
-  then: PromiseThenSignature<T>;
-  catch: PromiseCatchSignature;
-}
 
 export type DirectProgressCallback<T, TSender> = (
   progress: number,
@@ -80,9 +75,14 @@ export interface IStatusOp<
   readonly response: T | null;
   readonly error: StatusOpError | null;
 
-  then: PromiseThenSignature<T>;
-  catch: PromiseCatchSignature;
-  finally: PromiseFinallySignature<T>;
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
+    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
+  ): Promise<TResult1 | TResult2>;
+  catch<TResult = never>(
+    onrejected?: (reason: any) => TResult | PromiseLike<TResult>
+  ): Promise<T | TResult>;
+  finally(onfinally?: () => void): Promise<T>;
 
   getStatusObject: () => IStatusOpStatus<T, TEventMap>;
   getReadonlyObject: () => IReadonlyStatusOp<T, TEventMap>;
@@ -113,27 +113,12 @@ export interface IReadonlyStatusOp<
   readonly response: T | null;
   readonly error: StatusOpError | null;
 
-  then: PromiseThenSignature<T>;
-  catch: PromiseCatchSignature;
-  finally: PromiseFinallySignature<T>;
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
+    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
+  ): Promise<TResult1 | TResult2>;
+  catch<TResult = never>(
+    onrejected?: (reason: any) => TResult | PromiseLike<TResult>
+  ): Promise<T | TResult>;
+  finally(onfinally?: () => void): Promise<T>;
 }
-
-type PromiseThenSignature<T> = (
-  onfulfilled?: ((value: T) => unknown) | null | undefined,
-  onrejected?: ((reason: any) => unknown) | null | undefined
-) => Promise<unknown>;
-type PromiseCatchSignature = (
-  onrejected?: ((reason: any) => unknown) | null | undefined
-) => Promise<unknown>;
-type PromiseFinallySignature<T> = (
-  onfinally?: (() => void) | null | undefined
-) => Promise<T>;
-
-// type PromiseThenParams<T> = [
-//   onfulfilled?: ((value: T) => unknown) | null | undefined,
-//   onrejected?: ((reason: any) => unknown) | null | undefined
-// ];
-// type PromiseCatchParams = [
-//   onrejected?: ((reason: any) => unknown) | null | undefined
-// ];
-// type PromiseFinallyParams = [onfinally?: (() => void) | null | undefined];

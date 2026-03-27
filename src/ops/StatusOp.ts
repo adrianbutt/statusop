@@ -1,5 +1,4 @@
 import type {
-  IPromiseLike,
   IReadonlyStatusOp,
   IStatusOp,
   IStatusOpEventMap,
@@ -24,7 +23,7 @@ export abstract class StatusOp<
     TEventMap extends IStatusOpEventMap<T> = IStatusOpEventMap<T>
   >
   extends EventTarget
-  implements IStatusOp<T, TEventMap>, IPromiseLike<T>
+  implements IStatusOp<T, TEventMap>, PromiseLike<T>
 {
   // easy access to reported info properties
   readonly id!: StatusOpID;
@@ -81,8 +80,16 @@ export abstract class StatusOp<
     const _reqID = options.id || generateRandomID();
     const _processCallback = options.processCallback || null;
 
-    const _basePromise =
-      options.promise || Promise.reject("No base promise provided");
+    let _basePromise: Promise<T>;
+    if (options.promise) {
+      if ("catch" in options.promise) {
+        _basePromise = options.promise as Promise<T>;
+      } else {
+        _basePromise = Promise.resolve(options.promise);
+      }
+    } else {
+      _basePromise = Promise.reject("No base promise provided");
+    }
     const _rootPromiseObj = genPromiseObj<T>();
 
     const _manualCallbacks: {
@@ -338,13 +345,19 @@ export abstract class StatusOp<
   getStatusObject: () => IStatusOpStatus<T, TEventMap>;
   getReadonlyObject: () => IReadonlyStatusOp<T, TEventMap>;
 
-  then: (
-    onfulfilled?: ((value: T) => unknown) | null | undefined,
-    onrejected?: ((reason: any) => unknown) | null | undefined
-  ) => Promise<unknown>;
-  catch: (
-    onrejected?: ((reason: any) => unknown) | null | undefined
-  ) => Promise<unknown>;
+  then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
+    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
+  ): Promise<TResult1 | TResult2> {
+    // function will be replaced in constructor
+    throw 1;
+  }
+  catch<TResult = never>(
+    onrejected?: (reason: any) => TResult | PromiseLike<TResult>
+  ): Promise<T | TResult> {
+    // function will be replaced in constructor
+    throw 1;
+  }
   finally: (onfinally?: (() => void) | null | undefined) => Promise<T>;
 
   protected _updateProgress: (to: number, silent?: boolean) => void;
