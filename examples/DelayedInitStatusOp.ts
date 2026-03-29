@@ -1,12 +1,5 @@
 import { DelayedInitStatusOp } from "statusop";
-import type {
-  IReadonlyStatusOp,
-  IStatusOpStatus,
-  IStatusOpEventMap,
-  CompleteEventPayload,
-  ErrorEventPayload,
-  ProgressEventPayload
-} from "statusop";
+import type { IReadonlyStatusOp, IStatusOpStatus } from "statusop";
 
 type ExampleTaskPayload = {
   data: string;
@@ -62,20 +55,6 @@ export async function standardExample() {
   const op = new ExampleOp(15);
 
   // we could listen to progress events like so:
-  op.addEventListener(
-    "progress",
-    (ev: IStatusOpEventMap<ExampleTaskPayload>["progress"]) => {
-      // target will be the op
-    }
-  );
-  op.addEventListener(
-    "progress",
-    (ev: CustomEvent<ProgressEventPayload<ExampleTaskPayload>>) => {
-      // target will be the op
-    }
-  );
-
-  // or directly
   op.on("progress", (progress: number) => {});
   op.on("progress", (progress: number, sender: typeof op) => {});
 
@@ -90,19 +69,6 @@ export async function standardExample() {
   );
 
   // for completion we could listen to the complete event
-  op.addEventListener(
-    "complete",
-    (ev: IStatusOpEventMap<ExampleTaskPayload>["complete"]) => {
-      // target will be the op
-    }
-  );
-  op.addEventListener(
-    "complete",
-    (ev: CustomEvent<CompleteEventPayload<ExampleTaskPayload>>) => {
-      // target will be the op
-    }
-  );
-
   op.on("complete", (response: ExampleTaskPayload, sender: typeof op) => {});
   op.getStatusObject().on(
     "complete",
@@ -113,22 +79,10 @@ export async function standardExample() {
   );
 
   // for errors:
-  op.addEventListener(
-    "error",
-    (ev: IStatusOpEventMap<ExampleTaskPayload>["error"]) => {
-      // target will be the op
-    }
-  );
-  op.addEventListener(
-    "error",
-    (ev: CustomEvent<ErrorEventPayload<ExampleTaskPayload>>) => {
-      // target will be the op
-    }
-  );
-  op.on("error", (response: unknown, sender: typeof op) => {});
+  op.on("error", (error: unknown, sender: typeof op) => {});
   op.getStatusObject().on(
     "error",
-    (response: unknown, sender: IStatusOpStatus<ExampleTaskPayload>) => {}
+    (error: unknown, sender: IStatusOpStatus<ExampleTaskPayload>) => {}
   );
 
   // we need to manually start this op...

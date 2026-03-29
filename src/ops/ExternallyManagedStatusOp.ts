@@ -1,5 +1,7 @@
 import type {
   IStatusOpOptions,
+  EventMapDef,
+  DefaultEventMap,
   OnCompleteCallback,
   ProcessResponseCallback,
   StatusOpError,
@@ -15,7 +17,10 @@ export interface IExternallyManagedStatusOpOptions<T> {
   processCallback?: ProcessResponseCallback<T>;
 }
 
-export class ExternallyManagedStatusOp<T> extends StatusOp<T> {
+export class ExternallyManagedStatusOp<
+  T,
+  TEventMap extends EventMapDef<TEventMap> = DefaultEventMap
+> extends StatusOp<T, TEventMap> {
   constructor(reqID: StatusOpID);
   constructor(reqID: StatusOpID, onComplete: OnCompleteCallback<T>);
   constructor(options: IExternallyManagedStatusOpOptions<T>);

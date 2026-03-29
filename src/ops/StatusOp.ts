@@ -1,12 +1,15 @@
 import type {
   IReadonlyStatusOp,
   IStatusOp,
-  IStatusOpEventMap,
   IStatusOpOptions,
   IStatusOpStatus,
-  OffSignature,
   OnCompleteCallback,
-  OnSignature,
+  EventPublisherWithSenderOnSignature,
+  EventPublisherWithSenderOffSignature,
+  EventMapDef,
+  DefaultEventMap,
+  DefaultStatusOpCallbacks,
+  StandardEventMapDef,
   StatusOpError,
   StatusOpID
 } from "@/src/types";
@@ -20,15 +23,22 @@ import {
 
 export abstract class StatusOp<
     T,
-    TEventMap extends IStatusOpEventMap<T> = IStatusOpEventMap<T>
+    TEventMap extends EventMapDef<TEventMap> = DefaultEventMap
   >
-  extends EventTarget
   implements IStatusOp<T, TEventMap>, PromiseLike<T>
 {
   // easy access to reported info properties
   readonly id!: StatusOpID;
-  readonly on!: OnSignature<T, this>;
-  readonly off!: OffSignature<T, this>;
+  readonly on!: EventPublisherWithSenderOnSignature<
+    T,
+    StandardEventMapDef<T, TEventMap>,
+    this
+  >;
+  readonly off!: EventPublisherWithSenderOffSignature<
+    T,
+    StandardEventMapDef<T, TEventMap>,
+    this
+  >;
   readonly progress!: number;
   readonly complete!: boolean;
   readonly response!: T | null;
@@ -43,8 +53,6 @@ export abstract class StatusOp<
   );
   constructor(options: IStatusOpOptions<T>);
   constructor() {
-    super();
-
     let options: IStatusOpOptions<T>;
 
     if (arguments.length > 2) {
@@ -76,6 +84,8 @@ export abstract class StatusOp<
     let _complete = false;
     let _response: T | undefined = undefined;
     let _error: StatusOpError | undefined = undefined;
+
+    let _evTarget = new EventTarget();
 
     const _reqID = options.id || generateRandomID();
     const _processCallback = options.processCallback || null;
@@ -141,40 +151,32 @@ export abstract class StatusOp<
     this.then = _then;
     this.catch = _catch;
     this.finally = _finally;
-    this.on = function (eventName: keyof TEventMap, callback: Function) {
+    this.on = function (
+      eventName: keyof StandardEventMapDef<T, TEventMap>,
+      callback: Function
+    ) {
       if (!callback) {
         return;
       }
 
       const handlerContext = this;
-      switch (eventName) {
-        case "progress": {
-          const mappedHandler = function (ev: TEventMap["progress"]) {
-            callback(ev.detail.progress, handlerContext);
-          };
-          _manualCallbacks.push({ eventName, mappedHandler, callback });
-          thisRef.addEventListener("progress", mappedHandler);
-          break;
-        }
-        case "error": {
-          const mappedHandler = function (ev: TEventMap["error"]) {
-            callback(ev.detail.error, handlerContext);
-          };
-          _manualCallbacks.push({ eventName, mappedHandler, callback });
-          thisRef.addEventListener("error", mappedHandler);
-          break;
-        }
-        case "complete": {
-          const mappedHandler = function (ev: TEventMap["complete"]) {
-            callback(ev.detail.response, handlerContext);
-          };
-          _manualCallbacks.push({ eventName, mappedHandler, callback });
-          thisRef.addEventListener("complete", mappedHandler);
-          break;
-        }
-      }
+      const mappedHandler = function (ev: Event) {
+        const args = ((ev as CustomEvent<unknown[]>).detail || []).slice();
+        args.push(handlerContext);
+        callback.apply(null, args);
+      };
+      _manualCallbacks.push({
+        eventName: eventName as unknown as keyof TEventMap,
+        mappedHandler,
+        callback
+      });
+      _evTarget.addEventListener(eventName as string, mappedHandler);
+      return;
     };
-    this.off = function (eventName: keyof TEventMap, callback: Function) {
+    this.off = function (
+      eventName: keyof StandardEventMapDef<T, TEventMap>,
+      callback: Function
+    ) {
       if (!callback) {
         return;
       }
@@ -189,11 +191,9 @@ export abstract class StatusOp<
 
       const relMap = _manualCallbacks.splice(relIndex, 1)[0];
 
-      const relHandler = relMap.mappedHandler as (
-        ev: TEventMap[keyof TEventMap]
-      ) => void;
+      const relHandler = relMap.mappedHandler as (ev: Event) => void;
 
-      thisRef.removeEventListener(eventName, relHandler);
+      _evTarget.removeEventListener(eventName as string, relHandler);
     };
 
     this.getStatusObject = () => _reportedInfo;
@@ -242,15 +242,27 @@ export abstract class StatusOp<
 
       silent = silent ?? false;
       if (!silent) {
-        this.dispatchEvent(
-          new CustomEvent("progress", {
-            detail: {
-              progress: _progress,
-              op: _reportedInfo
-            }
-          })
-        );
+        thisRef._fireStandardEvent("progress", [_progress]);
       }
+    };
+    this.fireEvent = function (
+      eventName: keyof TEventMap & string,
+      args: unknown[]
+    ): void {
+      _evTarget.dispatchEvent(
+        new CustomEvent(eventName, {
+          detail: args
+        })
+      );
+    };
+    this._fireStandardEvent = function (
+      eventName: keyof DefaultStatusOpCallbacks<T> & string,
+      args: unknown[]
+    ): void {
+      thisRef.fireEvent(
+        eventName as keyof TEventMap & string,
+        args as Parameters<TEventMap[keyof TEventMap & string]>
+      );
     };
 
     function _handleCompletion(
@@ -281,14 +293,7 @@ export abstract class StatusOp<
       if (!error) {
         _response = rsp;
 
-        thisRef.dispatchEvent(
-          new CustomEvent("complete", {
-            detail: {
-              response: _response,
-              op: _reportedInfo
-            }
-          })
-        );
+        thisRef._fireStandardEvent("complete", [_response!]);
 
         _rootPromiseObj.resolve(_response);
         return;
@@ -296,21 +301,14 @@ export abstract class StatusOp<
 
       _error = error;
 
-      thisRef.dispatchEvent(
-        new CustomEvent("error", {
-          detail: {
-            error: _error,
-            op: _reportedInfo
-          }
-        })
-      );
+      thisRef._fireStandardEvent("error", [_error]);
       _rootPromiseObj.reject(_error);
     }
 
     if (options.onComplete) {
       const onCompleteCB = options.onComplete;
-      this.on("complete", v => onCompleteCB(v, null));
-      this.on("error", err => onCompleteCB(null, err));
+      (this as StatusOp<T>).on("complete", v => onCompleteCB(v, null));
+      (this as StatusOp<T>).on("error", err => onCompleteCB(null, err));
     }
 
     _basePromise.catch(e => {
@@ -332,27 +330,22 @@ export abstract class StatusOp<
 
   protected _updateProgress: (to: number, silent?: boolean) => void;
 
-  // @ts-expect-error manual override of addEventListener for explicit event types
-  addEventListener<T extends keyof TEventMap>(
-    // the event name, a key of TEventMap
-    type: T,
-    listener:
-      | ((ev: TEventMap[T]) => void)
-      | { handleEvent: (ev: TEventMap[T]) => void }
-      | null,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-
-  // @ts-expect-error manual override of addEventListener for explicit event types
-  removeEventListener<T extends keyof TEventMap>(
-    // the event name, a key of TEventMap
-    type: T,
-    listener:
-      | ((ev: TEventMap[T]) => void)
-      | { handleEvent: (ev: TEventMap[T]) => void }
-      | null,
-    options?: boolean | AddEventListenerOptions
-  ): void;
+  fireEvent: StandardEventDispatcher<T, TEventMap>["fireEvent"];
+  protected _fireStandardEvent: StandardEventDispatcher<T>["_fireStandardEvent"];
 }
 
 export default StatusOp;
+
+type StandardEventDispatcher<
+  T,
+  TEventMap extends EventMapDef<TEventMap> = DefaultEventMap
+> = {
+  fireEvent<TKey extends keyof TEventMap & string>(
+    eventName: TKey,
+    args: Parameters<TEventMap[TKey]>
+  ): void;
+  _fireStandardEvent<TKey extends keyof DefaultStatusOpCallbacks<T> & string>(
+    eventName: TKey,
+    args: Parameters<DefaultStatusOpCallbacks<T>[TKey]>
+  ): void;
+};

@@ -22,51 +22,6 @@ describe("wrap promise tests", () => {
     expect(opResult).toEqual(987);
   });
 
-  test("basic testing with standard events", async () => {
-    const pObj = genPromiseObj<number>();
-
-    // const progressEventCallback = jest.fn(function () {});
-    const progressEventCallback = jest.fn();
-    const progressCompleteCallback = jest.fn();
-
-    const op = wrapPromise(pObj.promise);
-
-    op.addEventListener("progress", progressEventCallback);
-    op.addEventListener("complete", progressCompleteCallback);
-
-    expect(op.progress).toEqual(0);
-
-    op.notifyProgress(0.2);
-
-    expect(op.progress).toEqual(0.2);
-
-    expect(progressEventCallback.mock.calls).toHaveLength(1);
-    expect(progressEventCallback.mock.calls[0][0].detail).toEqual(
-      expect.objectContaining({
-        op: op.getStatusObject(),
-        progress: 0.2
-      })
-    );
-    expect(progressCompleteCallback.mock.calls).toHaveLength(0);
-
-    pObj.resolve(654);
-
-    let opResult = await op;
-
-    expect(op.progress).toEqual(1);
-    expect(op.complete).toEqual(true);
-    expect(op.response).toEqual(654);
-    expect(opResult).toEqual(654);
-
-    expect(progressCompleteCallback.mock.calls).toHaveLength(1);
-    expect(progressCompleteCallback.mock.calls[0][0].detail).toEqual(
-      expect.objectContaining({
-        op: op.getStatusObject(),
-        response: 654
-      })
-    );
-  });
-
   test("basic testing with direct events", async () => {
     const pObj = genPromiseObj<number>();
 
@@ -210,7 +165,7 @@ describe("wrap promise tests", () => {
     expect(progressCompleteCallback.mock.calls[0]).toEqual([654, op]);
   });
 
-  test("basic testing with standard events - using a PromiseLike object", async () => {
+  test("basic testing with direct events - using a PromiseLike object", async () => {
     const pObj = genPromiseObj<number>();
 
     const progressEventCallback = jest.fn();
@@ -226,8 +181,8 @@ describe("wrap promise tests", () => {
 
     const op = wrapPromise(promiseLike);
 
-    op.addEventListener("progress", progressEventCallback);
-    op.addEventListener("complete", progressCompleteCallback);
+    op.on("progress", progressEventCallback);
+    op.on("complete", progressCompleteCallback);
 
     expect(op.progress).toEqual(0);
 
@@ -236,12 +191,7 @@ describe("wrap promise tests", () => {
     expect(op.progress).toEqual(0.2);
 
     expect(progressEventCallback.mock.calls).toHaveLength(1);
-    expect(progressEventCallback.mock.calls[0][0].detail).toEqual(
-      expect.objectContaining({
-        op: op.getStatusObject(),
-        progress: 0.2
-      })
-    );
+    expect(progressEventCallback.mock.calls[0]).toEqual([0.2, op]);
     expect(progressCompleteCallback.mock.calls).toHaveLength(0);
 
     pObj.resolve(654);
@@ -254,12 +204,7 @@ describe("wrap promise tests", () => {
     expect(opResult).toEqual(654);
 
     expect(progressCompleteCallback.mock.calls).toHaveLength(1);
-    expect(progressCompleteCallback.mock.calls[0][0].detail).toEqual(
-      expect.objectContaining({
-        op: op.getStatusObject(),
-        response: 654
-      })
-    );
+    expect(progressCompleteCallback.mock.calls[0]).toEqual([654, op]);
   });
 
   test("invalid wrapPromise testing (empty)", async () => {

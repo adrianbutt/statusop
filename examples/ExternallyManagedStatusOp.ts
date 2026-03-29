@@ -1,12 +1,5 @@
 import { ExternallyManagedStatusOp } from "statusop";
-import type {
-  IReadonlyStatusOp,
-  IStatusOpStatus,
-  IStatusOpEventMap,
-  CompleteEventPayload,
-  ErrorEventPayload,
-  ProgressEventPayload
-} from "statusop";
+import type { IReadonlyStatusOp, IStatusOpStatus } from "statusop";
 
 type ExampleExpensiveTaskMap = {
   readonly promise: Promise<ExampleExpensiveTaskPayload>;
@@ -60,20 +53,6 @@ export async function standardExample() {
   };
 
   // we could listen to progress events like so:
-  op.addEventListener(
-    "progress",
-    (ev: IStatusOpEventMap<ExampleExpensiveTaskPayload>["progress"]) => {
-      // target will be the op
-    }
-  );
-  op.addEventListener(
-    "progress",
-    (ev: CustomEvent<ProgressEventPayload<ExampleExpensiveTaskPayload>>) => {
-      // target will be the op
-    }
-  );
-
-  // or directly
   op.on("progress", (progress: number) => {});
   op.on("progress", (progress: number, sender: typeof op) => {});
 
@@ -94,19 +73,6 @@ export async function standardExample() {
   );
 
   // for completion we could listen to the complete event
-  op.addEventListener(
-    "complete",
-    (ev: IStatusOpEventMap<ExampleExpensiveTaskPayload>["complete"]) => {
-      // target will be the op
-    }
-  );
-  op.addEventListener(
-    "complete",
-    (ev: CustomEvent<CompleteEventPayload<ExampleExpensiveTaskPayload>>) => {
-      // target will be the op
-    }
-  );
-
   op.on(
     "complete",
     (response: ExampleExpensiveTaskPayload, sender: typeof op) => {}
@@ -120,19 +86,7 @@ export async function standardExample() {
   );
 
   // for errors:
-  op.addEventListener(
-    "error",
-    (ev: IStatusOpEventMap<ExampleExpensiveTaskPayload>["error"]) => {
-      // target will be the op
-    }
-  );
-  op.addEventListener(
-    "error",
-    (ev: CustomEvent<ErrorEventPayload<ExampleExpensiveTaskPayload>>) => {
-      // target will be the op
-    }
-  );
-  op.on("error", (response: unknown, sender: typeof op) => {});
+  op.on("error", (error: unknown, sender: typeof op) => {});
   op.getStatusObject().on(
     "error",
     (

@@ -1,11 +1,11 @@
-import type { IStatusOpEventMap } from "@/src/types";
+import type { EventMapDef, DefaultEventMap } from "@/src/types";
 
 import { genPromiseObj } from "@/src/utils";
 import { StatusOp } from "@/src/ops/StatusOp";
 
 export abstract class DelayedInitStatusOp<
   T,
-  TEventMap extends IStatusOpEventMap<T> = IStatusOpEventMap<T>
+  TEventMap extends EventMapDef<TEventMap> = DefaultEventMap
 > extends StatusOp<T, TEventMap> {
   constructor() {
     const tmpPromiseObj = genPromiseObj<T>();
