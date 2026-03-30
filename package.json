@@ -1,6 +1,6 @@
 {
   "name": "statusop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Utility wrapper for promises with progress and events.",
   "main": "dist/cjs/src/index.js",
   "module": "dist/mjs/src/index.js",
