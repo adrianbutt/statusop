@@ -1,10 +1,10 @@
-import type { IPromiseLike, IPromiseObj } from "@/src/types";
+import type { IPromiseObj } from "@/src/types";
 
-export function isPromiseLike<T>(val: any): val is IPromiseLike<T> {
+export function isPromiseLike<T>(val: any): val is PromiseLike<T> {
   if (!val) {
     return false;
   }
-  return "then" in val && "catch" in val;
+  return "then" in val;
 }
 
 export function genPromiseObj<T>() {
