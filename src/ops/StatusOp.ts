@@ -269,10 +269,6 @@ export abstract class StatusOp<
       rsp: T | undefined,
       error: StatusOpError | null
     ) {
-      if (_complete) {
-        throw "Already completed";
-      }
-
       if (rsp !== undefined) {
         try {
           if (_processCallback) {
