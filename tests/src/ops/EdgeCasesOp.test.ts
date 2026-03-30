@@ -650,6 +650,14 @@ describe("explicit base StatusOp edge case tests", () => {
     // @ts-expect-error invalid signature
     opReadonly.on("myStringEvent", twoStringsFunc);
   });
+
+  test("setting progress to null should just set to 0", async () => {
+    const pObj = genPromiseObj<number>();
+
+    const op = new MockOp(pObj.promise);
+    op.testUpdateProgress(null as unknown as number);
+    expect(op.progress).toEqual(0);
+  });
 });
 
 export class MockOp<
