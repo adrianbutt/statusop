@@ -425,6 +425,7 @@ describe("explicit base StatusOp edge case tests", () => {
 
     type CustomEventMap = {
       myStringEvent: (msg: string) => void;
+      myEmptyEvent: () => void;
     };
 
     const op = new MockOp<number, CustomEventMap>(pObj.promise);
@@ -446,19 +447,26 @@ describe("explicit base StatusOp edge case tests", () => {
     const mockStatusMyStringEventCallback = jest.fn();
     const mockReadonlyMyStringEventCallback = jest.fn();
 
+    const mockDirectMyEmptyEventCallback = jest.fn();
+    const mockStatusMyEmptyEventCallback = jest.fn();
+    const mockReadonlyMyEmptyEventCallback = jest.fn();
+
     op.on("myStringEvent", mockDirectMyStringEventCallback);
+    op.on("myEmptyEvent", mockDirectMyEmptyEventCallback);
     op.on("complete", mockDirectCompleteCallback);
     op.on("progress", mockDirectProgressCallback);
     op.on("error", mockDirectErrorCallback);
 
     const opStatus = op.getStatusObject();
     opStatus.on("myStringEvent", mockStatusMyStringEventCallback);
+    opStatus.on("myEmptyEvent", mockStatusMyEmptyEventCallback);
     opStatus.on("complete", mockStatusCompleteCallback);
     opStatus.on("progress", mockStatusProgressCallback);
     opStatus.on("error", mockStatusErrorCallback);
 
     const opReadonly = op.getReadonlyObject();
     opReadonly.on("myStringEvent", mockReadonlyMyStringEventCallback);
+    opReadonly.on("myEmptyEvent", mockReadonlyMyEmptyEventCallback);
     opReadonly.on("complete", mockReadonlyCompleteCallback);
     opReadonly.on("progress", mockReadonlyProgressCallback);
     opReadonly.on("error", mockReadonlyErrorCallback);
@@ -474,6 +482,9 @@ describe("explicit base StatusOp edge case tests", () => {
     expect(mockDirectMyStringEventCallback.mock.calls).toHaveLength(0);
     expect(mockStatusMyStringEventCallback.mock.calls).toHaveLength(0);
     expect(mockReadonlyMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls).toHaveLength(0);
     expect(mockDirectProgressCallback.mock.calls).toHaveLength(0);
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
@@ -498,6 +509,9 @@ describe("explicit base StatusOp edge case tests", () => {
       "abc",
       opReadonly
     ]);
+    expect(mockDirectMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls).toHaveLength(0);
     expect(mockDirectProgressCallback.mock.calls).toHaveLength(0);
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
@@ -517,6 +531,9 @@ describe("explicit base StatusOp edge case tests", () => {
     expect(mockDirectMyStringEventCallback.mock.calls).toHaveLength(0);
     expect(mockStatusMyStringEventCallback.mock.calls).toHaveLength(0);
     expect(mockReadonlyMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls).toHaveLength(0);
     expect(mockDirectProgressCallback.mock.calls).toHaveLength(1);
     expect(mockDirectProgressCallback.mock.calls[0]).toEqual([0.5, op]);
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
@@ -554,6 +571,9 @@ describe("explicit base StatusOp edge case tests", () => {
     expect(mockDirectMyStringEventCallback.mock.calls).toHaveLength(0);
     expect(mockStatusMyStringEventCallback.mock.calls).toHaveLength(0);
     expect(mockReadonlyMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls).toHaveLength(0);
     expect(mockDirectProgressCallback.mock.calls).toHaveLength(0);
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(1);
@@ -591,6 +611,9 @@ describe("explicit base StatusOp edge case tests", () => {
       "def",
       opReadonly
     ]);
+    expect(mockDirectMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusMyEmptyEventCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls).toHaveLength(0);
     expect(mockDirectProgressCallback.mock.calls).toHaveLength(0);
     expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
     expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
@@ -600,6 +623,64 @@ describe("explicit base StatusOp edge case tests", () => {
     expect(mockReadonlyProgressCallback.mock.calls).toHaveLength(0);
     expect(mockReadonlyErrorCallback.mock.calls).toHaveLength(0);
     expect(mockReadonlyCompleteCallback.mock.calls).toHaveLength(0);
+
+    mockDirectMyStringEventCallback.mockClear();
+    mockStatusMyStringEventCallback.mockClear();
+    mockReadonlyMyStringEventCallback.mockClear();
+
+    op.fireEvent("myEmptyEvent", []);
+
+    expect(mockDirectMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectMyEmptyEventCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectMyEmptyEventCallback.mock.calls[0]).toEqual([op]);
+    expect(mockStatusMyEmptyEventCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusMyEmptyEventCallback.mock.calls[0]).toEqual([opStatus]);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls[0]).toEqual([
+      opReadonly
+    ]);
+    expect(mockDirectProgressCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusProgressCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusErrorCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyProgressCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyErrorCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyCompleteCallback.mock.calls).toHaveLength(0);
+
+    mockDirectMyEmptyEventCallback.mockClear();
+    mockStatusMyEmptyEventCallback.mockClear();
+    mockReadonlyMyEmptyEventCallback.mockClear();
+
+    op.fireEvent("myEmptyEvent");
+
+    expect(mockDirectMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyMyStringEventCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectMyEmptyEventCallback.mock.calls).toHaveLength(1);
+    expect(mockDirectMyEmptyEventCallback.mock.calls[0]).toEqual([op]);
+    expect(mockStatusMyEmptyEventCallback.mock.calls).toHaveLength(1);
+    expect(mockStatusMyEmptyEventCallback.mock.calls[0]).toEqual([opStatus]);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls).toHaveLength(1);
+    expect(mockReadonlyMyEmptyEventCallback.mock.calls[0]).toEqual([
+      opReadonly
+    ]);
+    expect(mockDirectProgressCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectErrorCallback.mock.calls).toHaveLength(0);
+    expect(mockDirectCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusProgressCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusErrorCallback.mock.calls).toHaveLength(0);
+    expect(mockStatusCompleteCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyProgressCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyErrorCallback.mock.calls).toHaveLength(0);
+    expect(mockReadonlyCompleteCallback.mock.calls).toHaveLength(0);
+
+    mockDirectMyEmptyEventCallback.mockClear();
+    mockStatusMyEmptyEventCallback.mockClear();
+    mockReadonlyMyEmptyEventCallback.mockClear();
   });
 
   test("custom event signature typescript checks", async () => {
@@ -607,6 +688,7 @@ describe("explicit base StatusOp edge case tests", () => {
 
     type CustomEventMap = {
       myStringEvent: (msg: string) => void;
+      myEmptyEvent: () => void;
     };
 
     const op = new MockOp<number, CustomEventMap>(pObj.promise);
@@ -649,6 +731,21 @@ describe("explicit base StatusOp edge case tests", () => {
     opStatus.on("myStringEvent", twoStringsFunc);
     // @ts-expect-error invalid signature
     opReadonly.on("myStringEvent", twoStringsFunc);
+
+    op.fireEvent("myStringEvent", ["abc"]);
+    // @ts-expect-error invalid signature - wrong number of args
+    op.fireEvent("myStringEvent", ["abc", ""]);
+    // @ts-expect-error invalid signature - wrong type of arg
+    op.fireEvent("myStringEvent", [1]);
+    // @ts-expect-error invalid signature - empy signature
+    op.fireEvent("myStringEvent", []);
+    // @ts-expect-error invalid signature - need to provide array
+    op.fireEvent("myStringEvent");
+
+    // should be able to call fireEvent with empty array if no args required
+    op.fireEvent("myEmptyEvent", []);
+    // should also be able to call fireEvent with no params if not required
+    op.fireEvent("myEmptyEvent");
   });
 
   test("setting progress to null should just set to 0", async () => {

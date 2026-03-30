@@ -254,7 +254,7 @@ export abstract class StatusOp<
           detail: args
         })
       );
-    };
+    } as unknown as StandardEventDispatcher<T, TEventMap>["fireEvent"];
     this._fireStandardEvent = function (
       eventName: keyof DefaultStatusOpCallbacks<T> & string,
       args: unknown[]
@@ -339,6 +339,13 @@ type StandardEventDispatcher<
   fireEvent<TKey extends keyof TEventMap & string>(
     eventName: TKey,
     args: Parameters<TEventMap[TKey]>
+  ): void;
+  // make args optional when no parameters are expected
+  fireEvent<TKey extends keyof TEventMap & string>(
+    eventName: TKey,
+    ...args: Parameters<TEventMap[TKey]> extends []
+      ? []
+      : [args: Parameters<TEventMap[TKey]>]
   ): void;
   _fireStandardEvent<TKey extends keyof DefaultStatusOpCallbacks<T> & string>(
     eventName: TKey,
