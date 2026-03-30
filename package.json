@@ -17,7 +17,6 @@
   "files": [
     "dist"
   ],
-  "repository": "adrianbutt/statusop",
   "scripts": {
     "build": "node build.mjs",
     "compile": "tsc -p tsconfig-compile.json --noEmit && tsc -p tsconfig-compile-examples.json --noEmit",
